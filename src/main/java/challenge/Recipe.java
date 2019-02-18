@@ -16,7 +16,7 @@ import org.springframework.data.annotation.Id;
 public class Recipe {
 
 	@Id
-	private String _id;
+	private String id;
 	@NotNull
 	private String title;
 	@NotNull
@@ -30,10 +30,10 @@ public class Recipe {
 
 	}
 
-	public Recipe(String _id, @NotNull String title, @NotNull String description, List<String> likes,
+	public Recipe(String id, @NotNull String title, @NotNull String description, List<String> likes,
 			@NotNull List<String> ingredients, List<RecipeComment> comments) {
 		super();
-		this._id = _id;
+		this.id = id;
 		this.title = title;
 		this.description = description;
 		this.likes = likes;
@@ -42,14 +42,14 @@ public class Recipe {
 	}
 
 
-	public String get_id() {
-		return _id;
-	}
 	public List<RecipeComment> getComments() {
 		return comments;
 	}
 	public String getDescription() {
 		return description;
+	}
+	public String getId() {
+		return id;
 	}
 	public List<String> getIngredients() {
 		return ingredients;
@@ -60,14 +60,14 @@ public class Recipe {
 	public String getTitle() {
 		return title;
 	}
-	public void set_id(String _id) {
-		this._id = _id;
-	}
 	public void setComments(List<RecipeComment> comments) {
 		this.comments = comments;
 	}
 	public void setDescription(String description) {
 		this.description = description;
+	}
+	public void setId(String id) {
+		this.id = id;
 	}
 	public void setIngredients(List<String> ingredients) {
 		this.ingredients = ingredients;

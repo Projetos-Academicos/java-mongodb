@@ -33,8 +33,8 @@ public class RecipeController {
 		service.delete(id);
 	}
 
-	@DeleteMapping("/{id}/{commentId}")
-	public void deleteComment(@PathVariable("id") String id, @PathVariable("commentId") String commentId) {
+	@DeleteMapping("/{id}/comment/{commentId}")
+	public void deleteComment(@PathVariable("id") String id, @PathVariable("commentId") String commentId) { //TODO OK
 		service.deleteComment(id, commentId);
 	}
 
@@ -59,7 +59,7 @@ public class RecipeController {
 	}
 
 	@GetMapping("/search")
-	public List<Recipe> search(@RequestParam String search) {
+	public List<Recipe> search(@RequestParam String search) { //TODO OK
 		return service.search(search);
 	}
 

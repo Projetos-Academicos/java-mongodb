@@ -1,7 +1,9 @@
 package challenge;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,57 +12,53 @@ import org.springframework.stereotype.Service;
 public class RecipeServiceImpl implements RecipeService {
 
 	@Autowired
-	private RecipeCommentRepository commentRepository;
-
-	@Autowired
 	private RecipeRepository repository;
 
 	@Override
 	public RecipeComment addComment(String id, RecipeComment comment) {
-		RecipeComment commentSaved = commentRepository.save(comment);
-		Recipe recipe = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Recipe not found ::" + id));
+
+		Recipe recipe = repository.findById(id).get();
 		if(recipe.getComments() != null && !recipe.getComments().isEmpty()) {
-			recipe.getComments().add(commentSaved);
+			recipe.getComments().add(comment);
 		}else {
-			recipe.setComments(Arrays.asList(commentSaved));
+			recipe.setComments(Arrays.asList(comment));
 		}
 		repository.save(recipe);
-		return commentSaved;
+		return comment;
 	}
 
 	@Override
 	public void delete(String id) {
-		Recipe recipe = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Recipe not found :: " + id));
-		if(recipe.getComments() != null && !recipe.getComments().isEmpty()) {
-			recipe.getComments().forEach(c -> commentRepository.delete(c));
-		}
-		repository.delete(recipe);
+		repository.deleteById(id);
 	}
 
 	@Override
-	public void deleteComment(String id, String commentId) {  //TODO ARRUMAR, NÃO TA FUNCIONANDO
-		Recipe recipe = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Recipe not found :: " + id));
-		List<RecipeComment> listComment = recipe.getComments();
+	public void deleteComment(String id, String commentId) {
+		Recipe recipe = repository.findById(id).get();
+		List<RecipeComment> listComment = new ArrayList<RecipeComment>();
 		if(recipe.getComments() != null && !recipe.getComments().isEmpty()) {
 			recipe.getComments().forEach(c -> {
-				if(c.get_id().equals(commentId)) {
-					listComment.remove(c);
+				if(!c.getId().equals(commentId)) {
+					listComment.add(c);
 				}
 			});
 		}
 		recipe.setComments(listComment);
 		repository.save(recipe);
-		commentRepository.deleteById(commentId);
 	}
 
 	@Override
 	public Recipe get(String id) {
-		return repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Recipe not found :: " + id));
+		Optional<Recipe> recipe = repository.findById(id);
+		if(recipe.isPresent()) {
+			return recipe.get();
+		}
+		return null;
 	}
 
 	@Override
 	public void like(String id, String userId) {
-		Recipe recipe = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Recipe not found ::" + id));
+		Recipe recipe = repository.findById(id).get();
 		if(recipe.getLikes() != null && !recipe.getLikes().isEmpty()) {
 			recipe.getLikes().add(userId);
 		}else {
@@ -77,20 +75,17 @@ public class RecipeServiceImpl implements RecipeService {
 
 	@Override
 	public Recipe save(Recipe recipe) {
-		if(recipe.getComments() != null && !recipe.getComments().isEmpty()) {
-			recipe.getComments().forEach(c -> commentRepository.save(c));
-		}
 		return repository.save(recipe);
 	}
 
 	@Override
-	public List<Recipe> search(String search) {//TODO IMPLEMENTAR
-		return null;
+	public List<Recipe> search(String search) {
+		return repository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCaseOrderByTitleAsc(search, search);
 	}
 
 	@Override
 	public void unlike(String id, String userId) {
-		Recipe recipe = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Recipe not found ::" + id));
+		Recipe recipe = repository.findById(id).get();
 		if(recipe.getLikes() != null && !recipe.getLikes().isEmpty() && recipe.getLikes().contains(userId)) {
 			recipe.getLikes().remove(userId);
 		}
@@ -99,7 +94,7 @@ public class RecipeServiceImpl implements RecipeService {
 
 	@Override
 	public void update(String id, Recipe recipe) {
-		Recipe recipeSaved = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Recipe not found ::" + id));
+		Recipe recipeSaved = repository.findById(id).get();
 		recipeSaved.setTitle(recipe.getTitle());
 		recipeSaved.setDescription(recipe.getDescription());
 		recipeSaved.setIngredients(recipe.getIngredients());
@@ -109,17 +104,14 @@ public class RecipeServiceImpl implements RecipeService {
 
 	@Override
 	public void updateComment(String id, String commentId, RecipeComment comment) {
-		RecipeComment commentSaved = commentRepository.findById(commentId).orElseThrow(() -> new ResourceNotFoundException("RecipeComment not found ::" + commentId));
-		Recipe recipe = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Recipe not found ::" + id));
+		Recipe recipe = repository.findById(id).get();
 		if(recipe.getComments() != null && !recipe.getComments().isEmpty()) {
 			recipe.getComments().forEach(c -> {
-				if(c.get_id().equals(commentSaved.get_id())) {
+				if(c.getId().equals(commentId)) {
 					c.setComment(comment.getComment());
 				}
 			});
 		}
-		commentSaved.setComment(comment.getComment());
-		commentRepository.save(commentSaved);
 		repository.save(recipe);
 	}
 
